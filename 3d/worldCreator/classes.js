@@ -53,8 +53,8 @@ class Ray{
     }
     checkCollistion(){
         let collistion = false;
-        for(let box of boxes){
-            let walls = box.getWalls();
+        for(let gameObject of gameObejcts){
+            let walls = gameObject.getWalls();
             for(let wall of walls){
                 let t = ((this.x1-wall.x1)*(wall.y1-wall.y2)-(this.y1-wall.y1)*(wall.x1-wall.x2))/((this.x1-this.x2)*(wall.y1-wall.y2)-(this.y1-this.y2)*(wall.x1-wall.x2));
                 let u = ((this.x1-wall.x1)*(this.y1-this.y2)-(this.y1-wall.y1)*(this.x1-this.x2))/((this.x1-this.x2)*(wall.y1-wall.y2)-(this.y1-this.y2)*(wall.x1-wall.x2));
@@ -94,11 +94,12 @@ class Wall{
 }
 
 class Box{
-    constructor(x,y,w,h){
+    constructor(x,y,w,h,moveble){
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
+        this.moveble = moveble;
     }
     getWalls(){
         return ([new Wall(this.x,this.y,this.x + chunkSize*this.w,this.y), new Wall(this.x,this.y,this.x,this.y + chunkSize*this.h), new Wall(this.x+chunkSize*this.w,this.y,this.x+chunkSize*this.w,this.y + chunkSize*this.h),new Wall(this.x,this.y+chunkSize*this.h,this.x+chunkSize*this.w,this.y + chunkSize*this.h)])
@@ -106,11 +107,51 @@ class Box{
 }
 
 class Door extends Box{
-    doorWidth = 0.3;
+    status = "closed";
+    moveSpeed = 0.1;
     constructor(row,colm,horizontal){
+        let doorWidth = 0.3;
         if(horizontal)
-            super(chunkSize * colm,chunkSize * (row + (1-this.doorWidth)/2),1,this.doorWidth)
+            super(chunkSize * colm,chunkSize * (row + (1-doorWidth)/2),1,doorWidth,true)
         else
-            super(chunkSize * (colm + (1-this.doorWidth)/2),chunkSize * row,this.doorWidth,1);
+            super(chunkSize * (colm + (1-doorWidth)/2),chunkSize * row,doorWidth,1,true);
+
+        this.horizontal = horizontal;
+    }
+    activate(){
+        if(this.status == "closed" || this.status == "closing")
+            this.status = "opening";
+        else if(this.status == "opened" || this.status == "opening")
+            this.status = "closing";
+    }
+    move(){
+        if(this.status == "opening")   
+            this.open();         
+        else if(this.status == "closing")  
+            this.close();          
+    }
+    open(){
+        if(this.horizontal){
+            this.w -= this.moveSpeed;
+            if(this.w <= 0)
+                this.status = "opened";
+            return;
+        }
+        
+        this.h -= this.moveSpeed;
+        if(this.h <= 0)
+            this.status = "opened";        
+    }
+    close(){
+        if(this.horizontal){
+            this.w += this.moveSpeed;
+            if(this.w >= 1)
+                this.status = "closed";
+            return;
+        }
+        
+        this.h += this.moveSpeed;
+        if(this.h >= 1)
+            this.status = "closed";     
     }
 }

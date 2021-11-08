@@ -11,16 +11,23 @@ const boxAmount = 5;
 const chunkSize = canvas3d.width/boxAmount;
 
 var player;
-var boxes = [];
+var gameObejcts = [];
 var keyPressed = {left:0,right:0,s:0,w:0,d:0,a:0};
+var createType = "box";
 
 var controlType2D = false;
+
 
 function listen(){
     document.addEventListener('keydown',({key})=>{
         key = key.toLocaleLowerCase();
         key = key.replace("arrow","");
         keyPressed[key] = 1;
+
+        if(key == " ")
+            for(let gameObject of gameObejcts)
+                if(gameObject.moveble)
+                    gameObject.activate();
     })
     document.addEventListener('keyup',({key})=>{
         key = key.toLocaleLowerCase();
@@ -34,20 +41,35 @@ function createTable(){
     for(let row = 0 ; row < boxAmount; row++){
         s+= "<tr>"
         for(let colm = 0; colm < boxAmount; colm++){
-            s+=`<td onclick='createBox(this.id)' id=${row*5+colm} style='width:50px; height:50px; border:1px solid'></td>`;
+            s+=`<td onclick='createObject(this.id)' id=${row*5+colm} style='width:50px; height:50px; border:1px solid'></td>`;
         }
         s+= "</tr>"
     }
     document.querySelector('table').innerHTML = s;;
 }
 
-function createBox(id){
-    document.getElementById(id).style.backgroundColor = 'green';
-
+function createObject(id){
+    
     var row = Math.floor(id / boxAmount);
     var colm = id % boxAmount;
+    
+    switch(createType){
+        case "box":
+            gameObejcts.push(new Box(chunkSize * colm,chunkSize * row,1,1));
+            document.getElementById(id).style.backgroundColor = 'green';
+            break;
+        case "h-door":
+            gameObejcts.push(new Door(row,colm,true));
+            document.getElementById(id).style.backgroundColor = 'blue';
+            break;
+        case "v-door":
+            gameObejcts.push(new Door(row,colm,false));
+            document.getElementById(id).style.backgroundColor = 'blue';
+    }   
+}
 
-    boxes.push(new Box(chunkSize * colm,chunkSize * row,1,1));
+function changeCreateType(type){
+    createType = type;
 }
 
 function start(){
@@ -64,10 +86,12 @@ function start(){
         player.draw();
         player.drawRays();
 
-        for(let box of boxes){
-            let walls = box.getWalls();
+        for(let gameObject of gameObejcts){
+            let walls = gameObject.getWalls();
             for(let wall of walls)
                 wall.draw();
+            if(gameObject.moveble)
+                gameObject.move();
         }
     },50)
 }
