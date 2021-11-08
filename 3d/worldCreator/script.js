@@ -96,24 +96,29 @@ function start(){
     },50)
 }
 
-function draw3D(x1,y1,x2,y2,i,ang){
+function draw3D(length,i,ang,texture){
     // let distancePercent = 1- Math.min(Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)) / getH(ang),1);
-    if(Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)) >= viewDistance-1)
+    if(length >= viewDistance-1)
         return;
 
-    let distancePercent = 30*wallHeight/Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+    let distancePercent = 30*wallHeight/length;
     distancePercent = distancePercent * getH(ang);
-    ctx3d.fillStyle = `hsl(240, 20%, ${(Math.min(distancePercent*3,1)*50)}%)`;
-    ctx3d.fillRect(i*canvas3d.width/rayCount, (canvas3d.height-distancePercent*wallHeight*canvas3d.height)/2, canvas3d.width/rayCount, distancePercent*wallHeight*canvas3d.height);
+
+    const height = distancePercent*wallHeight*canvas3d.height;
+    const pxSize = height/texture.length;
+
+    // ctx3d.fillStyle = `hsl(${texture[0][0]}, ${texture[0][1]}%, ${(Math.min(distancePercent*3,1)*50)}%)`;
+    // ctx3d.fillRect(i*canvas3d.width/rayCount, (canvas3d.height-height)/2, canvas3d.width/rayCount, height);
+    
+    for(let y = 0; y < texture.length; y++){
+        ctx3d.fillStyle = `hsl(${texture[y][0]}, ${texture[y][1]}%, ${(Math.min(distancePercent*3,1)*50)}%)`;
+        ctx3d.fillRect(i*canvas3d.width/rayCount, (canvas3d.height-height)/2 + y*pxSize, canvas3d.width/rayCount, Math.ceil(pxSize));
+    }
 }
 
 function getH(ang){
     return (Math.sin((90-fov/2)*Math.PI/180)) / (Math.sin((90-ang+fov/2)*Math.PI/180));
 }
-
-console.log(getH(0))
-console.log(getH(60))
-console.log(getH(80))
 
 function drawFloor(){
     ctx3d.fillStyle = 'blue';

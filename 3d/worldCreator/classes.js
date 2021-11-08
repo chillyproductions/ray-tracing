@@ -29,7 +29,9 @@ class Player{
             var ray = new Ray(this.x, this.y, this.rotation + i*(fov*2*Math.PI/360)/rayCount);
             var collistion = ray.checkCollistion();
             ray.draw();
-            draw3D(this.x,this.y,collistion[0],collistion[1],i+rayCount*0.5, (i+rayCount*0.5)*fov/rayCount)
+
+            var length = Math.sqrt((this.x-collistion[0])*(this.x-collistion[0])+(this.y-collistion[1])*(this.y-collistion[1]));
+            draw3D(length, i+rayCount*0.5, (i+rayCount*0.5)*fov/rayCount,collistion[2]);
         }
     }
 }
@@ -53,6 +55,7 @@ class Ray{
     }
     checkCollistion(){
         let collistion = false;
+        let texture;
         for(let gameObject of gameObejcts){
             let walls = gameObject.getWalls();
             for(let wall of walls){
@@ -65,6 +68,8 @@ class Ray{
                     if((newX-this.x1)*(newX-this.x1)+(newY-this.y1)*(newY-this.y1) < (this.vissbleX2-this.x1)*(this.vissbleX2-this.x1)+(this.vissbleY2-this.y1)*(this.vissbleY2-this.y1)){
                         this.vissbleX2 = newX;
                         this.vissbleY2 = newY;
+                        texture = wall.getTexture(newX,newY);
+
                         collistion = true;
                     }
                 }
@@ -74,22 +79,29 @@ class Ray{
                 }
             }
         }
-        return([this.vissbleX2,this.vissbleY2])
+        return([this.vissbleX2,this.vissbleY2,texture])
     }
 }
 
 class Wall{
-    constructor(x1,y1,x2,y2){
+    constructor(x1,y1,x2,y2, texture = wallTexture){
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+        this.texture = texture;
     }
     draw(){
         ctx2d.beginPath();
         ctx2d.moveTo(this.x1,this.y1);
         ctx2d.lineTo(this.x2,this.y2);
         ctx2d.stroke();
+    }
+    getTexture(x,y){
+        var length = Math.sqrt((this.x1-this.x2)*(this.x1-this.x2)+(this.y1-this.y2)*(this.y1-this.y2));
+        var partialLength = Math.sqrt((x-this.x2)*(x-this.x2)+(y-this.y2)*(y-this.y2));
+        var colm = Math.round((this.texture.length-1)*partialLength/length);        
+        return(this.texture[colm])
     }
 }
 
