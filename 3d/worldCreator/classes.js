@@ -8,14 +8,14 @@ class Player{
     }
 
     move(){
-        this.rotation += (keyPressed.d - keyPressed.a) * this.rotationSpeed;
+        this.rotation += (keyPressed.right - keyPressed.left) * this.rotationSpeed;
         if(controlType2D){
-            this.x += (keyPressed.right - keyPressed.left) * this.moveSpeed;
-            this.y += (keyPressed.down - keyPressed.up) * this.moveSpeed;
+            this.x += (keyPressed.d - keyPressed.a) * this.moveSpeed;
+            this.y += (keyPressed.s - keyPressed.w) * this.moveSpeed;
         }
         else{
-            this.x += (keyPressed.right - keyPressed.left) * this.moveSpeed * Math.sin(-this.rotation) - (keyPressed.down - keyPressed.up) * this.moveSpeed * Math.cos(-this.rotation);
-            this.y += (keyPressed.right - keyPressed.left) * this.moveSpeed * Math.cos(-this.rotation) + (keyPressed.down - keyPressed.up) * this.moveSpeed * Math.sin(-this.rotation);
+            this.x += (keyPressed.d - keyPressed.a) * this.moveSpeed * Math.sin(-this.rotation) - (keyPressed.s - keyPressed.w) * this.moveSpeed * Math.cos(-this.rotation);
+            this.y += (keyPressed.d - keyPressed.a) * this.moveSpeed * Math.cos(-this.rotation) + (keyPressed.s - keyPressed.w) * this.moveSpeed * Math.sin(-this.rotation);
         }
     }
 
@@ -25,11 +25,11 @@ class Player{
         ctx2d.fill();
     }
     drawRays(){
-        for(let i = 0-rayCount*0.5; i < rayCount; i++){
+        for(let i = 0-rayCount*0.5; i < rayCount/2; i++){
             var ray = new Ray(this.x, this.y, this.rotation + i*(fov*2*Math.PI/360)/rayCount);
             var collistion = ray.checkCollistion();
             ray.draw();
-            draw3D(this.x,this.y,collistion[0],collistion[1],i+rayCount*0.5)
+            draw3D(this.x,this.y,collistion[0],collistion[1],i+rayCount*0.5, (i+rayCount*0.5)*fov/rayCount)
         }
     }
 }
@@ -94,11 +94,23 @@ class Wall{
 }
 
 class Box{
-    constructor(row,colm){
-        this.x = canvas3d.width/boxAmount * colm;
-        this.y = canvas3d.width/boxAmount * row;
+    constructor(x,y,w,h){
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
     }
     getWalls(){
-        return ([new Wall(this.x,this.y,this.x + canvas3d.width/boxAmount,this.y), new Wall(this.x,this.y,this.x,this.y + canvas3d.width/boxAmount), new Wall(this.x+canvas3d.width/boxAmount,this.y,this.x+canvas3d.width/boxAmount,this.y + canvas3d.width/boxAmount),new Wall(this.x,this.y+canvas3d.width/boxAmount,this.x+canvas3d.width/boxAmount,this.y + canvas3d.width/boxAmount)])
+        return ([new Wall(this.x,this.y,this.x + chunkSize*this.w,this.y), new Wall(this.x,this.y,this.x,this.y + chunkSize*this.h), new Wall(this.x+chunkSize*this.w,this.y,this.x+chunkSize*this.w,this.y + chunkSize*this.h),new Wall(this.x,this.y+chunkSize*this.h,this.x+chunkSize*this.w,this.y + chunkSize*this.h)])
+    }
+}
+
+class Door extends Box{
+    doorWidth = 0.3;
+    constructor(row,colm,horizontal){
+        if(horizontal)
+            super(chunkSize * colm,chunkSize * (row + (1-this.doorWidth)/2),1,this.doorWidth)
+        else
+            super(chunkSize * (colm + (1-this.doorWidth)/2),chunkSize * row,this.doorWidth,1);
     }
 }
